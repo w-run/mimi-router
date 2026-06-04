@@ -6,7 +6,7 @@
 
 # One API · w-run 二次开发版
 
-_✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关（w-run 二开版） ✨_
+_✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
 
 </div>
 

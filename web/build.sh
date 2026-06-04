@@ -6,11 +6,10 @@ pwd
 while IFS= read -r theme; do
     [ -z "$theme" ] && continue
     echo "Building theme: $theme"
-    rm -rf "build/$theme"
     cd "$theme"
     npm install
     DISABLE_ESLINT_PLUGIN='true' REACT_APP_VERSION=$version npm run build
     cd ..
-    mkdir -p build
-    mv "$theme/build" "build/$theme"
+    # package.json 中的 build 脚本已经将产物移至 ../build/<主题名>/
+    # build.sh 中不再重复移动
 done < THEMES
