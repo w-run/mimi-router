@@ -6,7 +6,9 @@ COPY ./web .
 
 RUN npm install --prefix /web/default
 
-RUN DISABLE_ESLINT_PLUGIN='true' REACT_APP_VERSION=$(cat ./VERSION) npm run build --prefix /web/default
+RUN DISABLE_ESLINT_PLUGIN='true' REACT_APP_VERSION=$(cat ./VERSION) npm run build --prefix /web/default && \
+    mkdir -p /web/build && \
+    mv /web/default/build /web/build/default
 
 FROM golang:alpine AS builder2
 

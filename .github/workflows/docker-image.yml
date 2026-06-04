@@ -55,14 +55,14 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ${{ contains(github.ref, 'alpha') && 'demo629/one-api-alpha' || 'demo629/one-api' }}
-            ${{ contains(github.ref, 'alpha') && format('ghcr.io/{0}-alpha', github.repository) || format('ghcr.io/{0}', github.repository) }}
+            demo629/one-api
+            ghcr.io/${{ github.repository }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: ${{ contains(github.ref, 'alpha') && 'linux/amd64' || 'linux/amd64' }}
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
