@@ -31,7 +31,7 @@ _✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
 
 | 项目 | 内容 |
 |---|---|
-| 当前版本 | `1.0.0` |
+| 当前版本 | `1.1.0` |
 | 上游版本 | 基于 [songquanpeng/one-api](https://github.com/songquanpeng/one-api) |
 | 许可证 | MIT（保留原作者署名） |
 | 镜像仓库 | `wrundev/one-api`（Docker Hub）/ `ghcr.io/w-run/one-api`（GHCR） |
@@ -59,8 +59,37 @@ _✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
   - 映射关系 JSON：`{"deepseek-v4-pro": "deepseek-ai/DeepSeek-V4-Pro"}`
 
 ### 3. 版本管理
-- 重新起版本号 `1.0.0`，前后端版本号统一（`v1.0.0`）
+- 重新起版本号 `1.1.0`，前后端版本号统一（`v1.1.0`）
 - 修复版本更新提示逻辑
+
+### 4. 基础设施
+- GitHub CI 配置 Docker Hub 自动构建
+- 仓库脱离 fork 状态
+- Go 模块路径迁移至 `github.com/w-run/one-api`
+- Docker 镜像仓库迁移至 `wrundev/one-api`
+
+### 5. 模型名称格式化
+- 重构渠道编辑中的「自动生成模型映射」算法，支持：
+  - 路由前缀（`Pro/`、`LoRA/` 等）后置
+  - 整词保留（`DeepSeek`、`Qwen`、`GLM`、`Kimi`、`Hunyuan`、`Wan`、`Ling`、`ERNIE`、`MiniMax`、`FunAudioLLM`、`PaddlePaddle`、`BAAI` 等）
+  - 全大写缩写（`OCR`、`ASR`、`VL`、`LLM`）在驼峰边界拆 `-`
+  - 特殊命名硬编码（`Pro/moonshotai/Kimi-K2.6` → `kimi-k2.6`、`BAAI/bge-m3` → `bge-m3-baai` 等）
+
+### 6. 渠道管理增强
+- 渠道表格支持按字段排序，**默认 ID 倒序**
+- 排序状态切换：同列再点切换升降序，切换列重置为升序（ID 列除外）
+
+### 7. 顶栏 / 侧边栏调整
+- 主题按钮旁的「设置」改名为「**账号设置**」
+- 移除「关于」页面及相关路由、导航入口
+
+### 8. 首页重构
+- 首页极简风重写，**M3 Material You 风格**：
+  - 整页垂直水平居中
+  - 大字标题（响应式 xs 3rem / sm 4.5rem / md 6rem）
+  - 副标题弱化（`text.secondary`）
+  - Logo + 标题 + 文案 + GitHub 按钮垂直排列
+  - GitHub 按钮采用胶囊形（`borderRadius: 999`）
 
 ### 4. 基础设施
 - GitHub CI 配置 Docker Hub 自动构建

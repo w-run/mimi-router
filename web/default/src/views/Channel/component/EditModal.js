@@ -80,20 +80,77 @@ const EditModal = ({ open, channelId, onCancel, onOk }) => {
   const [basicModels, setBasicModels] = useState([]);
   const [fetchingModels, setFetchingModels] = useState(false);
 
-  // 生成短模型名（小写短横线格式，去除厂商前缀）
+  // 整词保留的品牌/系列名（不拆内部驼峰）；按"拆分驼峰后的小写连字符形式"反向匹配合并
+  const PRESERVE_WORDS = [
+    'DeepSeek', 'Qwen', 'GLM', 'Kimi', 'Hunyuan', 'Wan', 'Ling',
+    'MiniMax', 'FunAudio', 'FunAudioLLM', 'Paddle', 'PaddlePaddle',
+    'Kwai', 'Kolors', 'ByteDance', 'Seed', 'MOSS', 'TeleAI', 'THUDM',
+    'Tongyi', 'ERNIE', 'Step', 'BAAI', 'bge', 'Pro', 'LoRA', 'Flash',
+    'Instruct', 'Thinking', 'Captioner', 'Reranker', 'Embedding',
+    'OCR', 'Edit', 'Image', 'Speech', 'Voice', 'Small',
+    'Sense', 'Cosy', 'Tele',
+  ];
+
+  // 特定 modelId 对应的短名（算法无法覆盖的特殊命名约定）
+  const SPECIFIC_SHORTNAMES = {
+    'Pro/moonshotai/Kimi-K2.6': 'kimi-k2.6',
+    'Pro/moonshotai/Kimi-K2.5': 'kimi-k2.5',
+    'Pro/zai-org/GLM-5.1': 'glm-5.1',
+    'Pro/zai-org/GLM-5': 'glm-5',
+    'Pro/zai-org/GLM-4.7': 'glm-4.7',
+    'BAAI/bge-m3': 'bge-m3-baai',
+    'BAAI/bge-reranker-v2-m3': 'bge-reranker-v2-m3-baai',
+  };
+
   const generateShortName = (modelId) => {
-    // 去除厂商前缀（/ 前的部分）
+    if (SPECIFIC_SHORTNAMES[modelId]) {
+      return SPECIFIC_SHORTNAMES[modelId];
+    }
+    // 1. 识别路由前缀（Pro/、LoRA/、MiniMax/ 等位于最前的目录名）
+    const routePrefixes = ['Pro', 'LoRA', 'MiniMax'];
     let name = modelId;
+    const routeParts = [];
+    while (name.includes('/')) {
+      const parts = name.split('/');
+      const head = parts[0];
+      if (routePrefixes.includes(head)) {
+        routeParts.push(head.toLowerCase());
+        name = parts.slice(1).join('/');
+      } else {
+        break;
+      }
+    }
+
+    // 2. 去除厂商前缀（剩余路径中第一个 / 前的部分）
     if (name.includes('/')) {
       const parts = name.split('/');
       name = parts[parts.length - 1];
     }
-    // 转换为小写+短横线格式：大写字母前加-然后整体小写
-    name = name.replace(/([A-Z])/g, '-$1').toLowerCase();
-    // 去掉开头可能的-
-    name = name.replace(/^-/, '');
-    // 替换 _ 为 -
+
+    // 3. 先在"全大写缩写"(如 OCR/ASR/VL/LLM)边界拆 -
+    //    PaddleOCR       -> Paddle-OCR
+    //    TeleSpeechASR   -> Tele-Speech-ASR
+    name = name.replace(/([a-z])([A-Z]{2,})/g, '$1-$2');
+    // 4. 在 [a-z][A-Z] 边界拆 -
+    name = name.replace(/([a-z])([A-Z])/g, '$1-$2');
+    // 5. 还原 PRESERVE_WORDS 中的整词
+    //    经过前两步拆分后 "SenseVoiceSmall" 已变为 "Sense-Voice-Small"，
+    //    再次匹配保留词的"小写连字符"形式，合并回原驼峰写法。
+    for (const word of PRESERVE_WORDS.slice().sort((a, b) => b.length - a.length)) {
+      const parts = word.split(/(?=[A-Z])/).map((p) => p.toLowerCase());
+      const hyphenated = parts.join('-');
+      const re = new RegExp(hyphenated, 'gi');
+      name = name.replace(re, word);
+    }
+    // 6. 整体小写
+    name = name.toLowerCase();
+    // 7. 替换 _ 为 -
     name = name.replace(/_/g, '-');
+
+    // 8. 路由前缀后置
+    if (routeParts.length > 0) {
+      name = name + '-' + routeParts.join('-');
+    }
     return name;
   };
 

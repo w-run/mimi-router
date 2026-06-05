@@ -13,7 +13,6 @@ const OidcOAuth = Loadable(lazy(() => import('views/Authentication/Auth/OidcOAut
 const ForgetPassword = Loadable(lazy(() => import('views/Authentication/Auth/ForgetPassword')));
 const ResetPassword = Loadable(lazy(() => import('views/Authentication/Auth/ResetPassword')));
 const Home = Loadable(lazy(() => import('views/Home')));
-const About = Loadable(lazy(() => import('views/About')));
 const NotFoundView = Loadable(lazy(() => import('views/Error')));
 
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
@@ -25,10 +24,6 @@ const OtherRoutes = {
     {
       path: '',
       element: <Home />
-    },
-    {
-      path: '/about',
-      element: <About />
     },
     {
       path: '/login',

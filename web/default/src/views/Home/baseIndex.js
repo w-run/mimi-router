@@ -1,40 +1,66 @@
 import { Box, Typography, Button, Container, Stack } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import { GitHub } from '@mui/icons-material';
+import Logo from 'ui-component/Logo';
 
 const BaseIndex = () => (
   <Box
     sx={{
       minHeight: 'calc(100vh - 136px)',
-      backgroundImage: 'linear-gradient(to right, #ff9966, #ff5e62)',
-      color: 'white',
-      p: 4
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      bgcolor: 'background.default',
+      px: 3,
+      py: 10
     }}
   >
-    <Container maxWidth="lg">
-      <Grid container columns={12} wrap="nowrap" alignItems="center" sx={{ minHeight: 'calc(100vh - 230px)' }}>
-        <Grid md={7} lg={6}>
-          <Stack spacing={3}>
-            <Typography variant="h1" sx={{ fontSize: '4rem', color: '#fff', lineHeight: 1.5 }}>
-              One API
-            </Typography>
-            <Typography variant="h4" sx={{ fontSize: '1.5rem', color: '#fff', lineHeight: 1.5 }}>
-              All in one 的 OpenAI 接口 <br />
-              整合各种 API 访问方式 <br />
-              一键部署，开箱即用
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<GitHub />}
-              href="https://github.com/w-run/one-api"
-              target="_blank"
-              sx={{ backgroundColor: '#24292e', color: '#fff', width: 'fit-content', boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)' }}
-            >
-              GitHub
-            </Button>
-          </Stack>
-        </Grid>
-      </Grid>
+    <Container maxWidth="md">
+      <Stack spacing={6} alignItems="center" sx={{ textAlign: 'center' }}>
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: { xs: '3rem', sm: '4.5rem', md: '6rem' },
+            fontWeight: 700,
+            letterSpacing: '-0.03em',
+            lineHeight: 1.05
+          }}
+        >
+          One API
+        </Typography>
+        <Typography
+          variant="h4"
+          color="text.secondary"
+          sx={{
+            fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+            fontWeight: 400,
+            lineHeight: 1.7,
+            maxWidth: 720
+          }}
+        >
+          All in one 的 OpenAI 接口
+          <br />
+          整合各种 API 访问方式
+          <br />
+          一键部署，开箱即用
+        </Typography>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<GitHub />}
+          href="https://github.com/w-run/one-api"
+          target="_blank"
+          sx={{
+            borderRadius: 999,
+            px: 4,
+            py: 1.5,
+            textTransform: 'none',
+            fontSize: '1rem',
+            fontWeight: 500
+          }}
+        >
+          GitHub
+        </Button>
+      </Stack>
     </Container>
   </Box>
 );

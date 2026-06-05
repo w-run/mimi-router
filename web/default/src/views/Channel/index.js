@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { showError, showSuccess, showInfo, loadChannelModels } from 'utils/common';
 
 import { useTheme } from '@mui/material/styles';
@@ -28,6 +28,8 @@ export default function ChannelPage() {
   const [activePage, setActivePage] = useState(0);
   const [searching, setSearching] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [order, setOrder] = useState('desc');
+  const [orderBy, setOrderBy] = useState('id');
   const theme = useTheme();
   const matchUpMd = useMediaQuery(theme.breakpoints.up('sm'));
   const [openModal, setOpenModal] = useState(false);
@@ -182,6 +184,44 @@ export default function ChannelPage() {
     }
   };
 
+  // 排序：相同列再次点击切换升降序；不同列重置为升序（保留默认 id 倒序体验）
+  const handleRequestSort = (event, property) => {
+    if (orderBy === property) {
+      setOrder(order === 'asc' ? 'desc' : 'asc');
+    } else {
+      setOrder(property === 'id' ? 'desc' : 'asc');
+      setOrderBy(property);
+    }
+  };
+
+  // 对 channels 按当前 orderBy/order 排序
+  const sortedChannels = useMemo(() => {
+    const arr = [...channels];
+    const getValue = (row) => {
+      const v = row[orderBy];
+      return v === undefined || v === null ? '' : v;
+    };
+    arr.sort((a, b) => {
+      const va = getValue(a);
+      const vb = getValue(b);
+      let cmp;
+      if (typeof va === 'number' && typeof vb === 'number') {
+        cmp = va - vb;
+      } else {
+        // 数字字符串按数字排，否则用本地化字符串比较
+        const na = Number(va);
+        const nb = Number(vb);
+        if (!Number.isNaN(na) && !Number.isNaN(nb) && va !== '' && vb !== '') {
+          cmp = na - nb;
+        } else {
+          cmp = String(va).localeCompare(String(vb), 'zh-Hans-CN');
+        }
+      }
+      return order === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [channels, order, orderBy]);
+
   useEffect(() => {
     loadChannels(0)
       .then()
@@ -256,9 +296,9 @@ export default function ChannelPage() {
         <PerfectScrollbar component="div">
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
-              <ChannelTableHead />
+              <ChannelTableHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
               <TableBody>
-                {channels.slice(activePage * ITEMS_PER_PAGE, (activePage + 1) * ITEMS_PER_PAGE).map((row) => (
+                {sortedChannels.slice(activePage * ITEMS_PER_PAGE, (activePage + 1) * ITEMS_PER_PAGE).map((row) => (
                   <ChannelTableRow
                     item={row}
                     manageChannel={manageChannel}
@@ -274,7 +314,7 @@ export default function ChannelPage() {
         <TablePagination
           page={activePage}
           component="div"
-          count={channels.length + (channels.length % ITEMS_PER_PAGE === 0 ? 1 : 0)}
+          count={sortedChannels.length + (sortedChannels.length % ITEMS_PER_PAGE === 0 ? 1 : 0)}
           rowsPerPage={ITEMS_PER_PAGE}
           onPageChange={onPaginationChange}
           rowsPerPageOptions={[ITEMS_PER_PAGE]}
