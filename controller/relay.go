@@ -18,6 +18,7 @@ import (
 	"github.com/w-run/mimi-router/monitor"
 	"github.com/w-run/mimi-router/relay/controller"
 	"github.com/w-run/mimi-router/relay/fallback"
+	anthropicmod "github.com/w-run/mimi-router/relay/relaymode/anthropic"
 	"github.com/w-run/mimi-router/relay/model"
 	"github.com/w-run/mimi-router/relay/relaymode"
 )
@@ -37,6 +38,10 @@ func relayHelper(c *gin.Context, relayMode int) *model.ErrorWithStatusCode {
 		err = controller.RelayAudioHelper(c, relayMode)
 	case relaymode.Proxy:
 		err = controller.RelayProxyHelper(c, relayMode)
+	case relaymode.AnthropicMessages:
+		err = controller.RelayAnthropicHelper(c)
+	case relaymode.AnthropicCountTokens:
+		err = controller.RelayAnthropicCountTokensHelper(c)
 	default:
 		err = controller.RelayTextHelper(c)
 	}
@@ -132,6 +137,13 @@ func writeRelayError(c *gin.Context, bizErr *model.ErrorWithStatusCode, requestI
 	}
 	// BUG: bizErr is in race condition
 	bizErr.Error.Message = helper.MessageWithRequestId(bizErr.Error.Message, requestId)
+	// Anthropic 入站协议：按 Anthropic error 格式返回（type/message 字段不同）
+	relayMode := relaymode.GetByPath(c.Request.URL.Path)
+	if relayMode == relaymode.AnthropicMessages || relayMode == relaymode.AnthropicCountTokens {
+		body := anthropicmod.BuildErrorBodyFromOpenAI(bizErr.StatusCode, bizErr.Error)
+		c.JSON(bizErr.StatusCode, body)
+		return
+	}
 	c.JSON(bizErr.StatusCode, gin.H{
 		"error": bizErr.Error,
 	})

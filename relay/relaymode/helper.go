@@ -26,6 +26,11 @@ func GetByPath(path string) int {
 		relayMode = AudioTranslation
 	} else if strings.HasPrefix(path, "/v1/mimirouter/proxy") {
 		relayMode = Proxy
+	} else if strings.HasPrefix(path, "/v1/messages/count_tokens") {
+		// 注意: 必须在 /v1/messages 之前判断，否则会被前者吞掉
+		relayMode = AnthropicCountTokens
+	} else if strings.HasPrefix(path, "/v1/messages") {
+		relayMode = AnthropicMessages
 	}
 	return relayMode
 }

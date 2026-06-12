@@ -21,6 +21,10 @@ func SetRelayRouter(router *gin.Engine) {
 	relayV1Router.Use(middleware.RelayPanicRecover(), middleware.TokenAuth(), middleware.Distribute())
 	{
 		relayV1Router.Any("/mimirouter/proxy/:channelid/*target", controller.Relay)
+		// Anthropic Messages API (v1.4.0+): 兼容 Anthropic SDK
+		// 客户端可使用 anthropic-version 头（被忽略），鉴权仍用 sk-* Bearer
+		relayV1Router.POST("/messages", controller.Relay)
+		relayV1Router.POST("/messages/count_tokens", controller.Relay)
 		relayV1Router.POST("/completions", controller.Relay)
 		relayV1Router.POST("/chat/completions", controller.Relay)
 		relayV1Router.POST("/edits", controller.Relay)

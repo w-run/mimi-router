@@ -27,7 +27,7 @@ _✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
 
 | 项目 | 内容 |
 |---|---|
-| 当前版本 | `1.3.2` |
+| 当前版本 | `1.4.0` |
 | 上游版本 | 基于 [songquanpeng/one-api](https://github.com/songquanpeng/one-api) |
 | 许可证 | MIT（保留原作者署名） |
 | 镜像仓库 | `wrundev/mimi-router`（Docker Hub）/ `ghcr.io/w-run/mimi-router`（GHCR） |
@@ -125,6 +125,44 @@ _✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
   - `fallback.SoftBanFromError(ctx, channelId, bizErr)` — 收到 429 时软禁用
   - `fallback.ParseRetryAfter(value) int` — 解析 HTTP `Retry-After` 头
 - 新增 `model.SoftBanChannel / UnsoftBanChannel / IsChannelSoftBanned / CleanupExpiredSoftBan` 软禁用工具函数。
+
+### 6. Anthropic Messages API 兼容（v1.4.0）
+- 新增 `POST /v1/messages` 和 `POST /v1/messages/count_tokens` 端点
+- 入站协议 Anthropic SDK 兼容；内部自动转 OpenAI 协议分发到任意 OpenAI 兼容渠道
+- 支持文本、多模态（图）、工具调用（`tool_use` / `tool_result`）、流式 SSE（多 event 格式）
+- 支持 `count_tokens` 端点（本地估算，不消耗上游额度）
+- 鉴权沿用 mimi-router 颁发的 `sk-*`（`Authorization: Bearer ...`），`anthropic-version` 头被忽略
+- 协议转换层位于 `relay/relaymode/anthropic/`，不修改 OpenAI 链路，二者共享 `Distribute` / `RateLimit` / `Fallback` / 计费 / 日志中间件
+- 错误响应按 Anthropic `error.type` 体系（`invalid_request_error` / `authentication_error` / `rate_limit_error` / `api_error` / ...）输出
+
+**客户端使用示例**：
+
+```python
+# Python Anthropic SDK
+from anthropic import Anthropic
+client = Anthropic(
+    base_url="https://your-mimi-router/v1",
+    api_key="sk-your-mimi-router-token",  # mimi-router 颁发的 token
+)
+resp = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role":"user","content":"Hello"}],
+    stream=True,
+)
+```
+
+```bash
+# curl 非流式
+curl -X POST https://your-mimi-router/v1/messages \
+  -H "Authorization: Bearer sk-your-mimi-router-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 1024,
+    "messages": [{"role":"user","content":"Hello"}]
+  }'
+```
 
 ---
 
