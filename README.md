@@ -27,7 +27,7 @@ _✨ 基于标准 OpenAI API 格式访问所有大模型的开源 AI 网关 ✨_
 
 | 项目 | 内容 |
 |---|---|
-| 当前版本 | `1.3.1` |
+| 当前版本 | `1.3.2` |
 | 上游版本 | 基于 [songquanpeng/one-api](https://github.com/songquanpeng/one-api) |
 | 许可证 | MIT（保留原作者署名） |
 | 镜像仓库 | `wrundev/mimi-router`（Docker Hub）/ `ghcr.io/w-run/mimi-router`（GHCR） |

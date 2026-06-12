@@ -19,6 +19,49 @@ import { isAdmin } from 'utils/common';
 import { ITEMS_PER_PAGE } from 'constants';
 import { IconRefresh, IconSearch } from '@tabler/icons-react';
 
+// 渠道 id -> name 映射。Log 页面只读，不修改，所以放模块级 cache。
+let channelNameCache = null;
+let channelNameCachePromise = null;
+
+async function loadAllChannelNames() {
+  // 分页拉取所有渠道，仅保留 id/name，最大 200 页 = 2000 个渠道。
+  const map = new Map();
+  const maxPages = 200;
+  for (let p = 0; p < maxPages; p++) {
+    const res = await API.get(`/api/channel/?p=${p}`);
+    const { success, message, data } = res.data;
+    if (!success) {
+      throw new Error(message);
+    }
+    for (const ch of data || []) {
+      if (ch && typeof ch.id !== 'undefined' && ch.name) {
+        map.set(ch.id, ch.name);
+      }
+    }
+    // 每页默认 ITEMS_PER_PAGE=10；不足一页说明已到末尾。
+    if (!data || data.length < ITEMS_PER_PAGE) break;
+  }
+  return map;
+}
+
+async function getChannelNameMap() {
+  if (channelNameCache) return channelNameCache;
+  if (!channelNameCachePromise) {
+    channelNameCachePromise = loadAllChannelNames()
+      .then((m) => {
+        channelNameCache = m;
+        return m;
+      })
+      .catch((e) => {
+        // 失败时清掉 promise，允许下次重试
+        channelNameCachePromise = null;
+        showError(`加载渠道名称失败: ${e.message}`);
+        return new Map();
+      });
+  }
+  return channelNameCachePromise;
+}
+
 export default function Log() {
   const originalKeyword = {
     p: 0,
@@ -35,6 +78,7 @@ export default function Log() {
   const [searching, setSearching] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState(originalKeyword);
   const [initPage, setInitPage] = useState(true);
+  const [channelNameMap, setChannelNameMap] = useState(new Map());
   const userIsAdmin = isAdmin();
 
   const loadLogs = async (startIdx) => {
@@ -98,6 +142,8 @@ export default function Log() {
         showError(reason);
       });
     setInitPage(false);
+    // 异步加载渠道 id -> name 映射，渲染时直接查
+    getChannelNameMap().then((m) => setChannelNameMap(m));
   }, [initPage]);
 
   return (
@@ -137,7 +183,7 @@ export default function Log() {
               <LogTableHead userIsAdmin={userIsAdmin} />
               <TableBody>
                 {logs.slice(activePage * ITEMS_PER_PAGE, (activePage + 1) * ITEMS_PER_PAGE).map((row, index) => (
-                  <LogTableRow item={row} key={`${row.id}_${index}`} userIsAdmin={userIsAdmin} />
+                  <LogTableRow item={row} key={`${row.id}_${index}`} userIsAdmin={userIsAdmin} channelNameMap={channelNameMap} />
                 ))}
               </TableBody>
             </Table>

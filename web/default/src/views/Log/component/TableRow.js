@@ -25,13 +25,28 @@ function renderType(type) {
   }
 }
 
-export default function LogTableRow({ item, userIsAdmin }) {
+// 渲染渠道单元格：优先显示名称，没有名称则回退到 ID。
+// channelNameMap: Map<id, name>，由父组件传入。
+function renderChannel(channelId, channelNameMap) {
+  if (!channelId) return '';
+  const name = channelNameMap && channelNameMap.get(channelId);
+  if (name) {
+    return (
+      <Label color="default" variant="soft" title={`#${channelId}`}>
+        {name}
+      </Label>
+    );
+  }
+  return String(channelId);
+}
+
+export default function LogTableRow({ item, userIsAdmin, channelNameMap }) {
   return (
     <>
       <TableRow tabIndex={item.id}>
         <TableCell>{timestamp2string(item.created_at)}</TableCell>
 
-        {userIsAdmin && <TableCell>{item.channel || ''}</TableCell>}
+        {userIsAdmin && <TableCell>{renderChannel(item.channel, channelNameMap)}</TableCell>}
         {userIsAdmin && (
           <TableCell>
             <Label color="default" variant="outlined">
@@ -65,5 +80,6 @@ export default function LogTableRow({ item, userIsAdmin }) {
 
 LogTableRow.propTypes = {
   item: PropTypes.object,
-  userIsAdmin: PropTypes.bool
+  userIsAdmin: PropTypes.bool,
+  channelNameMap: PropTypes.instanceOf(Map)
 };
